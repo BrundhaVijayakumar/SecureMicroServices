@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer4;
+using System.Security.Claims;
+using IdentityModel;
 
 namespace IdentityServer
 {
@@ -20,8 +23,32 @@ namespace IdentityServer
                     {
                         new Secret("secret".Sha256())
                     },
-                    AllowedScopes={"movieAPI"}
- 
+                    AllowedScopes={"movieAPI"} 
+                },
+                new Client
+                {
+                    ClientId="movies_mvc_client",
+                    ClientName="Movies MVC Web App",
+                    AllowedGrantTypes=GrantTypes.Code,
+                    AllowRememberConsent=false,
+                    RedirectUris=new List<string>()
+                    {
+                        "https://localhost:5002/signin-oidc"
+                    },
+                    PostLogoutRedirectUris=new List<string>()
+                    {
+                        "https://localhost:5002/signout-callback-oidc"
+                    },
+                    ClientSecrets =
+                    {
+                        new Secret("secret".Sha256())
+                    },
+                    AllowedScopes=new List<string>()
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile
+                    }
+
                 }
             };
         public static IEnumerable<ApiScope> ApiScopes =>
@@ -37,11 +64,23 @@ namespace IdentityServer
         public static IEnumerable<IdentityResource> IdentityResources =>
             new IdentityResource[]
             {
-
+                new IdentityResources.OpenId(),
+                new IdentityResources.Profile()
             };
         public static List<TestUser> TestUsers =>
             new List<TestUser>
             {
+                new TestUser
+                {
+                    SubjectId="5BE86359-073C-434B-AD2D-A392222DABE",
+                    Username="mehmet",
+                    Password="mehmet",
+                    Claims=new List<Claim>
+                    {
+                        new Claim(JwtClaimTypes.GivenName,"mehmet"),
+                        new Claim(JwtClaimTypes.FamilyName,"ozkaya")
+                    }
+                }
 
             };
     }
