@@ -48,7 +48,7 @@ namespace Movies.Client
 
                      options.SaveTokens = true;
 
-                     options.GetClaimsFromUserInfoEndpoint = true;
+                     //options.GetClaimsFromUserInfoEndpoint = true;
 
 
                  });
