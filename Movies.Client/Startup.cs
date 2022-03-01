@@ -11,6 +11,12 @@ using System.Threading.Tasks;
 using Movies.Client.ApiServices;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Net.Http.Headers;
+using Movies.Client.HttpHandlers;
+using IdentityModel.Client;
+using Microsoft.IdentityModel.Tokens;
+using IdentityModel;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Movies.Client
 {
@@ -41,17 +47,57 @@ namespace Movies.Client
 
                      options.ClientId = "movies_mvc_client";
                      options.ClientSecret = "secret";
-                     options.ResponseType = "code";
+                     options.ResponseType = "code id_token";
 
-                     options.Scope.Add("openid");
-                     options.Scope.Add("profile");
+                     //options.Scope.Add("openid");
+                     //options.Scope.Add("profile");
+                     options.Scope.Add("address");
+                     options.Scope.Add("email");
+                     options.Scope.Add("movieAPI");
+                     options.Scope.Add("roles");
+                     options.ClaimActions.MapUniqueJsonKey("role", "role");
 
                      options.SaveTokens = true;
 
-                     //options.GetClaimsFromUserInfoEndpoint = true;
+                     options.GetClaimsFromUserInfoEndpoint = true;
+
+                     options.TokenValidationParameters = new TokenValidationParameters
+                     {
+                          NameClaimType= JwtClaimTypes.GivenName,
+                          RoleClaimType=JwtClaimTypes.Role
+                     };
 
 
                  });
+
+            //create a httpclient used for accesssing movies.api
+
+            services.AddTransient<AuthenticationDelegatingHandler>();
+            services.AddHttpClient("MoviesAPIClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:5010/");
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
+            }).AddHttpMessageHandler<AuthenticationDelegatingHandler>();
+
+            //create a httpclient used for accesssing IDP
+
+            services.AddHttpClient("IDPClient", client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:5005/");
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
+            });
+
+            services.AddHttpContextAccessor();
+            //services.AddSingleton(new ClientCredentialsTokenRequest
+            //{
+            //    Address= "https://localhost:5005/connect/token",
+            //    ClientId="movieClient",
+            //    ClientSecret="secret",
+            //    Scope="movieAPI"
+            //});
+                
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
